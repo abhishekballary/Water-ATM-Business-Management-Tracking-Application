@@ -53,6 +53,13 @@ Full-stack app for managing village water ATM operations with support for coin, 
 
 ## Setup
 
+### Prerequisites
+
+- Node.js **18+** (recommended: Node.js 20 LTS)
+- npm 9+
+
+If you see an error like `SyntaxError: Unexpected token '??='`, your Node.js runtime is too old. Upgrade Node.js and reinstall dependencies.
+
 ### 1) Backend
 
 ```bash
