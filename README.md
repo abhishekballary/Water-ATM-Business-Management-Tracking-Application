@@ -60,21 +60,6 @@ Full-stack app for managing village water ATM operations with support for coin, 
 
 If you see an error like `SyntaxError: Unexpected token '??='`, your Node.js runtime is too old. Upgrade Node.js and reinstall dependencies.
 
-If you currently have Node.js `v14.15.1`, upgrade first (example with `nvm`):
-
-```bash
-nvm install 20
-nvm use 20
-node -v
-```
-
-Then reinstall dependencies:
-
-```bash
-cd backend && rm -rf node_modules package-lock.json && npm install
-cd ../frontend && rm -rf node_modules package-lock.json && npm install
-```
-
 ### 1) Backend
 
 ```bash
