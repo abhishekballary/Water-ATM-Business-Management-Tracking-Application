@@ -1,64 +1,72 @@
-# Water ATM Business Management & Tracking Application
+# Water ATM Business Tracking System
 
-Full-stack app for managing village water ATM operations with support for coin, QR/UPI, and RFID smart-card-based workflows.
+Complete full-stack application to manage a village water vending machine business with dynamic dashboards backed by MongoDB data.
 
-## Monorepo Structure
+## Tech Stack
 
-- `backend/` Express + MongoDB REST API
-- `frontend/` React + TypeScript + Tailwind admin dashboard
+- **Frontend:** React, TypeScript, Vite, TailwindCSS, Axios, Recharts, React Router
+- **Backend:** Node.js, Express.js, REST APIs
+- **Database:** MongoDB + Mongoose
+- **Auth:** JWT admin login + bcrypt password hashing
 
-## Backend Features
+## Project Structure
 
-- JWT admin authentication (`POST /auth/login`)
-- Customer smart card management (CRUD)
-- Recharge transaction tracking and filtering
-- Daily report creation/history/monthly aggregate endpoint
-- Dashboard summary + analytics endpoints
-- Multi-machine-ready schema (`machineId` in transactions)
-- Seed script to create admin + sample data
+```txt
+water-atm-system/
+  backend/
+    src/
+      config/
+      controllers/
+      middleware/
+      models/
+      routes/
+      server.js
+  frontend/
+    src/
+      components/
+      hooks/
+      layouts/
+      pages/
+      services/
+```
 
-### Backend API
+## Core Features
 
-- Auth
-  - `POST /auth/login`
-- Customers
-  - `POST /customers`
-  - `GET /customers`
-  - `GET /customers/:id`
-  - `PUT /customers/:id`
-  - `DELETE /customers/:id`
-- Recharges
-  - `POST /recharges`
-  - `GET /recharges`
-  - `GET /recharges/customer/:cardNumber`
-- Daily Reports
-  - `POST /reports`
-  - `GET /reports`
-  - `PUT /reports/:id`
-  - `GET /reports/monthly`
-- Dashboard
-  - `GET /dashboard/summary`
-  - `GET /dashboard/analytics`
+- Admin login with JWT
+- Customer smart-card management (add/edit/delete/search)
+- Recharge transactions with customer/date filtering
+- Daily reports with create + edit + history
+- Monthly report aggregates
+- Dynamic dashboard cards and charts from DB (no hardcoded stats)
+- Payment type tracking: coin(cash), QR, card
+- 20L jar usage tracking
 
-## Frontend Features
+## Backend API Endpoints
 
-- Admin login page
-- Responsive admin layout with sidebar navigation
-- Dashboard with KPI cards + Recharts visualizations
-- Customers table (search + sorting + pagination)
-- Recharges table (sorting + pagination)
-- Daily/Monthly report page
-- Customer analytics page (regular/inactive segment overview)
-- Payment analytics page
+All endpoints are prefixed with `/api`.
 
-## Setup
+- **Auth**
+  - `POST /api/auth/login`
+- **Customers**
+  - `POST /api/customers`
+  - `GET /api/customers`
+  - `GET /api/customers/:id`
+  - `PUT /api/customers/:id`
+  - `DELETE /api/customers/:id`
+- **Recharges**
+  - `POST /api/recharges`
+  - `GET /api/recharges`
+  - `GET /api/recharges/customer/:cardNumber`
+- **Daily Reports**
+  - `POST /api/reports`
+  - `GET /api/reports`
+  - `PUT /api/reports/:id`
+  - `GET /api/reports/monthly?year=YYYY&month=MM`
+- **Dashboard Analytics**
+  - `GET /api/dashboard/summary`
+  - `GET /api/dashboard/analytics`
 
-### Prerequisites
-
-- Node.js **18+** (recommended: Node.js 20 LTS)
-- npm 9+
-
-If you see an error like `SyntaxError: Unexpected token '??='`, your Node.js runtime is too old. Upgrade Node.js and reinstall dependencies.
+## Setup Instructions
 
 ### 1) Backend
 
@@ -70,7 +78,7 @@ npm run seed
 npm run dev
 ```
 
-Seeded admin credentials:
+Default seeded admin:
 - username: `admin`
 - password: `admin123`
 
@@ -82,11 +90,16 @@ npm install
 npm run dev
 ```
 
-Frontend expects backend at `http://localhost:5000` by default.
-Set `VITE_API_URL` in frontend env if needed.
+Frontend environment variable (optional):
 
-## Future-ready notes
+```bash
+VITE_API_URL=http://localhost:5000/api
+```
 
-- `machineId` is present in core business models to support scaling from one to multiple water ATMs.
-- Customer model includes engagement fields (`lastRechargeDate`, `rechargeCount`, `customerSegment`) for future SMS reminders/promotions.
-- Separate analytics/reporting endpoints support future IoT auto-sync from machines.
+## Data Flow
+
+1. User submits forms (customers, recharges, reports).
+2. Frontend sends payload via Axios service layer.
+3. Express APIs store data in MongoDB.
+4. Dashboard endpoints aggregate current DB data.
+5. UI auto-refreshes via React Query invalidation + refetch.

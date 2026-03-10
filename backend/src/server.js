@@ -15,11 +15,11 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
-app.use('/auth', authRoutes);
-app.use('/customers', customerRoutes);
-app.use('/recharges', rechargeRoutes);
-app.use('/reports', reportRoutes);
-app.use('/dashboard', dashboardRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/recharges', rechargeRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 const PORT = process.env.PORT || 5000;
 

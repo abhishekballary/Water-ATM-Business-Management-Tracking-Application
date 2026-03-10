@@ -16,50 +16,65 @@ export const getDashboardSummary = async (_, res) => {
     Customer.countDocuments()
   ]);
 
-  const summary = todayReports.reduce(
+  const reportSummary = todayReports.reduce(
     (acc, report) => ({
       todaySales: acc.todaySales + report.totalWaterValue,
       todayRechargeAmount: acc.todayRechargeAmount + report.totalRechargeAmount,
-      todayCoinCollection: acc.todayCoinCollection + report.totalCoinAmount,
-      todayQrPayments: acc.todayQrPayments + report.totalQrAmount,
-      totalCardUsersToday: acc.totalCardUsersToday + report.totalCardUsers,
-      total20LJarUsage: acc.total20LJarUsage + report.total20LJarUsage
+      totalJarUsage: acc.totalJarUsage + report.total20LJarUsage
     }),
-    {
-      todaySales: 0,
-      todayRechargeAmount: 0,
-      todayCoinCollection: 0,
-      todayQrPayments: 0,
-      totalCardUsersToday: 0,
-      total20LJarUsage: 0
-    }
+    { todaySales: 0, todayRechargeAmount: 0, totalJarUsage: 0 }
   );
 
-  const todayQRRecharge = todayRecharges
-    .filter((r) => ['qr', 'upi'].includes(r.paymentMode))
-    .reduce((sum, r) => sum + r.rechargeAmount, 0);
+  const rechargeSummary = todayRecharges.reduce(
+    (acc, recharge) => {
+      acc.rechargeAmount += recharge.rechargeAmount;
+      if (recharge.paymentMode === 'cash') acc.coinRevenue += recharge.rechargeAmount;
+      if (recharge.paymentMode === 'qr') acc.qrRevenue += recharge.rechargeAmount;
+      return acc;
+    },
+    { rechargeAmount: 0, coinRevenue: 0, qrRevenue: 0 }
+  );
 
-  res.json({ ...summary, totalCustomers, todayQRRecharge });
+  res.json({
+    todaySales: reportSummary.todaySales,
+    todayRechargeAmount: reportSummary.todayRechargeAmount || rechargeSummary.rechargeAmount,
+    coinRevenue: rechargeSummary.coinRevenue,
+    qrRevenue: rechargeSummary.qrRevenue,
+    totalCustomers,
+    totalJarUsage: reportSummary.totalJarUsage
+  });
 };
 
 export const getDashboardAnalytics = async (_, res) => {
-  const salesTrend = await DailyReport.find().sort({ reportDate: 1 }).limit(30);
-  const rechargeTrend = await Recharge.aggregate([
-    { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } }, total: { $sum: '$rechargeAmount' } } },
-    { $sort: { _id: 1 } }
-  ]);
-  const paymentDistribution = await Recharge.aggregate([
-    { $group: { _id: '$paymentMode', value: { $sum: '$rechargeAmount' } } }
-  ]);
-  const customerGrowth = await Customer.aggregate([
-    {
-      $group: {
-        _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
-        customers: { $sum: 1 }
-      }
-    },
-    { $sort: { _id: 1 } }
+  const [dailySalesChart, monthlyRevenueChart, rechargeActivityChart] = await Promise.all([
+    DailyReport.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$reportDate' } },
+          sales: { $sum: '$totalWaterValue' }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]),
+    DailyReport.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$reportDate' } },
+          revenue: { $sum: '$totalWaterValue' }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]),
+    Recharge.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          amount: { $sum: '$rechargeAmount' }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ])
   ]);
 
-  res.json({ salesTrend, rechargeTrend, paymentDistribution, customerGrowth });
+  res.json({ dailySalesChart, monthlyRevenueChart, rechargeActivityChart });
 };
