@@ -24,7 +24,20 @@ export default function RechargesPage() {
 
   const mutation = useMutation({
     mutationFn: () => rechargeApi.create({ customerId, cardNumber, rechargeAmount, paymentMode, date }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['recharges'] })
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['recharges'] });
+      qc.invalidateQueries({ queryKey: ['summary'] });
+      qc.invalidateQueries({ queryKey: ['analytics'] });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => rechargeApi.remove(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['recharges'] });
+      qc.invalidateQueries({ queryKey: ['summary'] });
+      qc.invalidateQueries({ queryKey: ['analytics'] });
+    }
   });
 
   const filteredRecharges = useMemo(
@@ -32,17 +45,31 @@ export default function RechargesPage() {
     [recharges, filterCard]
   );
 
+  const isFormValid = Boolean(customerId && cardNumber.trim() && rechargeAmount > 0);
+
   const columns: ColumnDef<Recharge>[] = [
     { header: 'Card Number', accessorKey: 'cardNumber' },
     { header: 'Amount', accessorKey: 'rechargeAmount' },
     { header: 'Payment', accessorKey: 'paymentMode' },
-    { header: 'Date', cell: ({ row }) => new Date(row.original.date).toLocaleDateString() }
+    { header: 'Date', cell: ({ row }) => new Date(row.original.date).toLocaleDateString() },
+    {
+      header: 'Action',
+      cell: ({ row }) => (
+        <button
+          className="rounded bg-red-600 px-2 py-1 text-white"
+          onClick={() => deleteMutation.mutate(row.original._id)}
+          disabled={deleteMutation.isPending}
+        >
+          Delete
+        </button>
+      )
+    }
   ];
 
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Recharges</h2>
-      <form className="grid gap-3 rounded bg-white p-4 shadow md:grid-cols-3" onSubmit={(e) => { e.preventDefault(); mutation.mutate(); }}>
+      <form className="grid gap-3 rounded bg-white p-4 shadow md:grid-cols-3" onSubmit={(e) => { e.preventDefault(); if (!isFormValid) return; mutation.mutate(); }}>
         <label className="text-sm">Customer
           <select className="w-full rounded border p-2" value={customerId} onChange={(e) => {
             setCustomerId(e.target.value);
@@ -57,7 +84,7 @@ export default function RechargesPage() {
         <FormInput label="Recharge Amount" name="rechargeAmount" type="number" value={rechargeAmount} onChange={(e) => setRechargeAmount(Number(e.target.value))} />
         <FormInput label="Payment Mode" name="paymentMode" value={paymentMode} options={[{label:'Cash',value:'cash'},{label:'QR',value:'qr'},{label:'Card',value:'card'}]} onChange={(e) => setPaymentMode(e.target.value as 'cash' | 'qr' | 'card')} />
         <FormInput label="Date" name="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-        <button className="rounded bg-blue-600 p-2 text-white">Add Recharge</button>
+        <button className="rounded bg-blue-600 p-2 text-white disabled:cursor-not-allowed disabled:bg-blue-300" disabled={!isFormValid || mutation.isPending}>Add Recharge</button>
       </form>
 
       <div className="grid gap-2 md:grid-cols-2">
