@@ -37,11 +37,13 @@ export const getDashboardSummary = async (_, res) => {
     { rechargeAmount: 0, coinRevenue: 0, qrRevenue: 0 }
   );
 
+  const hasTodayReport = todayReports.length > 0;
+
   res.json({
     todaySales: reportSummary.todaySales,
-    todayRechargeAmount: rechargeSummary.rechargeAmount,
-    coinRevenue: rechargeSummary.coinRevenue,
-    qrRevenue: rechargeSummary.qrRevenue,
+    todayRechargeAmount: hasTodayReport ? reportSummary.todayRechargeAmount : rechargeSummary.rechargeAmount,
+    coinRevenue: hasTodayReport ? reportSummary.coinRevenue : rechargeSummary.coinRevenue,
+    qrRevenue: hasTodayReport ? reportSummary.qrRevenue : rechargeSummary.qrRevenue,
     totalCustomers,
     totalJarUsage: reportSummary.totalJarUsage
   });
