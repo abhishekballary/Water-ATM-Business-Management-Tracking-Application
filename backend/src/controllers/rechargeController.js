@@ -1,12 +1,9 @@
 import Recharge from '../models/Recharge.js';
-import Customer from '../models/Customer.js';
+
+const makeRechargeId = () => `RCG-${Date.now().toString().slice(-7)}`;
 
 export const createRecharge = async (req, res) => {
-  const recharge = await Recharge.create(req.body);
-  await Customer.findOneAndUpdate(
-    { cardNumber: recharge.cardNumber },
-    { $inc: { rechargeCount: 1 }, lastRechargeDate: recharge.date }
-  );
+  const recharge = await Recharge.create({ ...req.body, rechargeId: req.body.rechargeId || makeRechargeId() });
   res.status(201).json(recharge);
 };
 
@@ -21,7 +18,7 @@ export const getRecharges = async (req, res) => {
     if (endDate) filter.date.$lte = new Date(endDate);
   }
 
-  const recharges = await Recharge.find(filter).sort({ date: -1 });
+  const recharges = await Recharge.find(filter).sort({ date: -1 }).populate('customerId', 'customerName cardNumber');
   res.json(recharges);
 };
 

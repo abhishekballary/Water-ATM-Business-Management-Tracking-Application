@@ -1,48 +1,59 @@
 import { useQuery } from '@tanstack/react-query';
-import { Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
-import { fetchAnalytics, fetchSummary } from '../api/services';
+import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import ChartCard from '../components/ChartCard';
 import StatCard from '../components/StatCard';
+import { dashboardApi } from '../services/api';
 
 export default function DashboardPage() {
-  const { data: summary } = useQuery({ queryKey: ['summary'], queryFn: () => fetchSummary().then((r) => r.data) });
-  const { data: analytics } = useQuery({ queryKey: ['analytics'], queryFn: () => fetchAnalytics().then((r) => r.data) });
+  const { data: summary } = useQuery({ queryKey: ['summary'], queryFn: () => dashboardApi.summary().then((r) => r.data) });
+  const { data: analytics } = useQuery({ queryKey: ['analytics'], queryFn: () => dashboardApi.analytics().then((r) => r.data) });
 
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Dashboard</h2>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <StatCard title="Today Total Sales" value={summary?.todaySales ?? 0} />
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        <StatCard title="Today Sales" value={summary?.todaySales ?? 0} />
         <StatCard title="Today Recharge" value={summary?.todayRechargeAmount ?? 0} />
-        <StatCard title="Today Coin Collection" value={summary?.todayCoinCollection ?? 0} />
-        <StatCard title="Total Card Users Today" value={summary?.totalCardUsersToday ?? 0} />
-        <StatCard title="Today QR/UPI" value={summary?.todayQrPayments ?? 0} />
-        <StatCard title="20L Jar Usage" value={summary?.total20LJarUsage ?? 0} />
+        <StatCard title="Coin Collection" value={summary?.coinRevenue ?? 0} />
+        <StatCard title="QR Payments" value={summary?.qrRevenue ?? 0} />
         <StatCard title="Total Customers" value={summary?.totalCustomers ?? 0} />
+        <StatCard title="20L Jar Usage" value={summary?.totalJarUsage ?? 0} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="h-72 rounded bg-white p-4 shadow">
-          <h3 className="font-semibold">Daily Sales Trend</h3>
-          <ResponsiveContainer width="100%" height="90%">
-            <LineChart data={analytics?.salesTrend ?? []}>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <ChartCard title="Daily Sales Chart">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={analytics?.dailySalesChart ?? []}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="reportDate" />
+              <XAxis dataKey="_id" />
               <YAxis />
               <Tooltip />
-              <Line dataKey="totalWaterValue" stroke="#2563eb" />
+              <Line dataKey="sales" stroke="#2563eb" />
             </LineChart>
           </ResponsiveContainer>
-        </div>
-
-        <div className="h-72 rounded bg-white p-4 shadow">
-          <h3 className="font-semibold">Payment Distribution</h3>
-          <ResponsiveContainer width="100%" height="90%">
-            <PieChart>
-              <Pie data={analytics?.paymentDistribution ?? []} dataKey="value" nameKey="_id" outerRadius={80} fill="#60a5fa" />
+        </ChartCard>
+        <ChartCard title="Monthly Revenue Chart">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={analytics?.monthlyRevenueChart ?? []}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="_id" />
+              <YAxis />
               <Tooltip />
-            </PieChart>
+              <Bar dataKey="revenue" fill="#0ea5e9" />
+            </BarChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
+        <ChartCard title="Recharge Activity Chart">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={analytics?.rechargeActivityChart ?? []}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="_id" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="amount" fill="#16a34a" />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
       </div>
     </div>
   );
