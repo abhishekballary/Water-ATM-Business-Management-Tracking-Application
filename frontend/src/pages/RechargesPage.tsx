@@ -24,7 +24,20 @@ export default function RechargesPage() {
 
   const mutation = useMutation({
     mutationFn: () => rechargeApi.create({ customerId, cardNumber, rechargeAmount, paymentMode, date }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['recharges'] })
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['recharges'] });
+      qc.invalidateQueries({ queryKey: ['summary'] });
+      qc.invalidateQueries({ queryKey: ['analytics'] });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => rechargeApi.remove(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['recharges'] });
+      qc.invalidateQueries({ queryKey: ['summary'] });
+      qc.invalidateQueries({ queryKey: ['analytics'] });
+    }
   });
 
   const filteredRecharges = useMemo(
@@ -36,7 +49,19 @@ export default function RechargesPage() {
     { header: 'Card Number', accessorKey: 'cardNumber' },
     { header: 'Amount', accessorKey: 'rechargeAmount' },
     { header: 'Payment', accessorKey: 'paymentMode' },
-    { header: 'Date', cell: ({ row }) => new Date(row.original.date).toLocaleDateString() }
+    { header: 'Date', cell: ({ row }) => new Date(row.original.date).toLocaleDateString() },
+    {
+      header: 'Action',
+      cell: ({ row }) => (
+        <button
+          className="rounded bg-red-600 px-2 py-1 text-white"
+          onClick={() => deleteMutation.mutate(row.original._id)}
+          disabled={deleteMutation.isPending}
+        >
+          Delete
+        </button>
+      )
+    }
   ];
 
   return (

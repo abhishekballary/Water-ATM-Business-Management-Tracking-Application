@@ -24,6 +24,12 @@ export const updateReport = async (req, res) => {
   res.json(report);
 };
 
+export const deleteReport = async (req, res) => {
+  const report = await DailyReport.findByIdAndDelete(req.params.id);
+  if (!report) return res.status(404).json({ message: 'Report not found' });
+  res.json({ message: 'Report deleted' });
+};
+
 export const getMonthlyReport = async (req, res) => {
   const { year, month } = req.query;
   const start = new Date(Number(year), Number(month) - 1, 1);

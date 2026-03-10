@@ -25,13 +25,15 @@ export const customerApi = {
 
 export const rechargeApi = {
   list: (params: Record<string, string> = {}) => api.get('/recharges', { params }),
-  create: (payload: unknown) => api.post('/recharges', payload)
+  create: (payload: unknown) => api.post('/recharges', payload),
+  remove: (id: string) => api.delete(`/recharges/${id}`)
 };
 
 export const reportApi = {
   list: () => api.get('/reports'),
   create: (payload: unknown) => api.post('/reports', payload),
   update: (id: string, payload: unknown) => api.put(`/reports/${id}`, payload),
+  remove: (id: string) => api.delete(`/reports/${id}`),
   monthly: (year: number, month: number) => api.get(`/reports/monthly?year=${year}&month=${month}`)
 };
 

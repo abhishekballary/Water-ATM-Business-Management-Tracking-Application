@@ -26,3 +26,9 @@ export const getRechargesByCardNumber = async (req, res) => {
   const recharges = await Recharge.find({ cardNumber: req.params.cardNumber }).sort({ date: -1 });
   res.json(recharges);
 };
+
+export const deleteRecharge = async (req, res) => {
+  const recharge = await Recharge.findByIdAndDelete(req.params.id);
+  if (!recharge) return res.status(404).json({ message: 'Recharge not found' });
+  res.json({ message: 'Recharge deleted' });
+};
