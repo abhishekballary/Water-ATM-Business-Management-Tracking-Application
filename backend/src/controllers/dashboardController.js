@@ -20,9 +20,11 @@ export const getDashboardSummary = async (_, res) => {
     (acc, report) => ({
       todaySales: acc.todaySales + report.totalWaterValue,
       todayRechargeAmount: acc.todayRechargeAmount + report.totalRechargeAmount,
-      totalJarUsage: acc.totalJarUsage + report.total20LJarUsage
+      totalJarUsage: acc.totalJarUsage + report.total20LJarUsage,
+      coinRevenue: acc.coinRevenue + report.totalCoinAmount,
+      qrRevenue: acc.qrRevenue + report.totalQrAmount
     }),
-    { todaySales: 0, todayRechargeAmount: 0, totalJarUsage: 0 }
+    { todaySales: 0, todayRechargeAmount: 0, totalJarUsage: 0, coinRevenue: 0, qrRevenue: 0 }
   );
 
   const rechargeSummary = todayRecharges.reduce(
@@ -35,11 +37,13 @@ export const getDashboardSummary = async (_, res) => {
     { rechargeAmount: 0, coinRevenue: 0, qrRevenue: 0 }
   );
 
+  const hasTodayReport = todayReports.length > 0;
+
   res.json({
     todaySales: reportSummary.todaySales,
-    todayRechargeAmount: reportSummary.todayRechargeAmount || rechargeSummary.rechargeAmount,
-    coinRevenue: rechargeSummary.coinRevenue,
-    qrRevenue: rechargeSummary.qrRevenue,
+    todayRechargeAmount: hasTodayReport ? reportSummary.todayRechargeAmount : rechargeSummary.rechargeAmount,
+    coinRevenue: hasTodayReport ? reportSummary.coinRevenue : rechargeSummary.coinRevenue,
+    qrRevenue: hasTodayReport ? reportSummary.qrRevenue : rechargeSummary.qrRevenue,
     totalCustomers,
     totalJarUsage: reportSummary.totalJarUsage
   });

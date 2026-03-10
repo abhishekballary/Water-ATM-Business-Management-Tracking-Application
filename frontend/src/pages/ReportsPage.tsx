@@ -27,8 +27,23 @@ export default function ReportsPage() {
     mutationFn: () => (editId ? reportApi.update(editId, form) : reportApi.create(form)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['reports'] });
+      qc.invalidateQueries({ queryKey: ['summary'] });
+      qc.invalidateQueries({ queryKey: ['analytics'] });
       setForm(empty);
       setEditId(null);
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => reportApi.remove(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['reports'] });
+      qc.invalidateQueries({ queryKey: ['summary'] });
+      qc.invalidateQueries({ queryKey: ['analytics'] });
+      if (editId) {
+        setEditId(null);
+        setForm(empty);
+      }
     }
   });
 
@@ -41,16 +56,21 @@ export default function ReportsPage() {
     { header: 'Jar Usage', accessorKey: 'total20LJarUsage' },
     {
       header: 'Action',
-      cell: ({ row }) => <button className="rounded bg-amber-500 px-2 py-1 text-white" onClick={() => { setEditId(row.original._id); setForm({
-        reportDate: row.original.reportDate.slice(0, 10),
-        totalWaterValue: row.original.totalWaterValue,
-        totalRechargeAmount: row.original.totalRechargeAmount,
-        totalCoinAmount: row.original.totalCoinAmount,
-        totalQrAmount: row.original.totalQrAmount,
-        totalCardUsers: row.original.totalCardUsers,
-        total20LJarUsage: row.original.total20LJarUsage,
-        newCardCount: row.original.newCardCount
-      }); }}>Edit</button>
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          <button className="rounded bg-amber-500 px-2 py-1 text-white" onClick={() => { setEditId(row.original._id); setForm({
+            reportDate: row.original.reportDate.slice(0, 10),
+            totalWaterValue: row.original.totalWaterValue,
+            totalRechargeAmount: row.original.totalRechargeAmount,
+            totalCoinAmount: row.original.totalCoinAmount,
+            totalQrAmount: row.original.totalQrAmount,
+            totalCardUsers: row.original.totalCardUsers,
+            total20LJarUsage: row.original.total20LJarUsage,
+            newCardCount: row.original.newCardCount
+          }); }}>Edit</button>
+          <button className="rounded bg-red-600 px-2 py-1 text-white" onClick={() => deleteMutation.mutate(row.original._id)} disabled={deleteMutation.isPending}>Delete</button>
+        </div>
+      )
     }
   ];
 
